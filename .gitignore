@@ -14,6 +14,9 @@ QUICK_START_MCP.md
 NEXT_STEPS.md
 GITHUB_PUSH_SUMMARY.md
 PRE_PUSH_CHECKLIST.txt
+FINAL_CHECKLIST.md
+README_internal.md
+ASSIGNMENT.md
 
 # Vector database (too large for git)
 vector_db/
