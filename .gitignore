@@ -1,1 +1,46 @@
 .venv
+.env
+dataset
+
+# Test and demo files
+test_*.py
+demo_*.py
+show_*.py
+explain_*.py
+
+# Documentation created during development
+MCP_GUIDE.md
+QUICK_START_MCP.md
+NEXT_STEPS.md
+GITHUB_PUSH_SUMMARY.md
+PRE_PUSH_CHECKLIST.txt
+
+# Vector database (too large for git)
+vector_db/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Pytest cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.log
+tmp_*

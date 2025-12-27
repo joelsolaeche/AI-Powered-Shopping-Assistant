@@ -19,13 +19,17 @@ from .tools import (
     structured_search_tool,
     view_cart,
 )
+from .web_search_mcp import get_brave_web_search_tool_sync
 
 load_dotenv()
 import pandas as pd
 
 # Setup LLM
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY") or "Empty"
-llm = ChatOpenAI(model = 'gpt-4o', api_key=OPENAI_API_KEY)
+llm = ChatOpenAI(model="gpt-4o-mini", api_key=OPENAI_API_KEY, temperature=0.7)
+
+# Load web search tools
+web_search_tools = get_brave_web_search_tool_sync()
 
 # Tool registration
 sales_tools = [
@@ -34,7 +38,7 @@ sales_tools = [
     structured_search_tool,
     cart_tool,
     view_cart,
-]
+] + web_search_tools  # Add web search tools
 support_tools = [EscalateToHuman]
 
 # Runnable pipelines
@@ -45,8 +49,7 @@ support_runnable = support_prompt.partial(time=datetime.now) | llm.bind_tools(
     support_tools
 )
 
-# TODO
-def sales_assistant(state: State, config: RunnableConfig, runnable=sales_runnable) -> dict:
+async def sales_assistant(state: State, config: RunnableConfig, runnable=sales_runnable) -> dict:
     """
     LangGraph node function for running the sales assistant LLM agent.
 
@@ -71,7 +74,15 @@ def sales_assistant(state: State, config: RunnableConfig, runnable=sales_runnabl
     - A dictionary with a `"messages"` key containing the new AI message(s).
     Example: `{"messages": [AIMessage(...)]}`
     """
-    pass
+    # Extract and set thread ID
+    set_thread_id(config["configurable"]["thread_id"])
+    
+    # Set default user ID
+    set_user_id(DEFAULT_USER_ID)
+    
+    # Invoke the runnable with state and config (use ainvoke for async)
+    result = await runnable.ainvoke(state, config=config)
+    return {"messages": result}
 
 
 def support_assistant(state: State, config: RunnableConfig) -> dict:

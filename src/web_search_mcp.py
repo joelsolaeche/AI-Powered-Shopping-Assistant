@@ -25,7 +25,48 @@ async def _load_brave_tool():
         List of tools (always return a list, even with fallback tools)
     """
     brave_api_key = os.environ.get("BRAVE_API_KEY", "")
-    return []
+    
+    # Create fallback tool for when web search is unavailable
+    @tool
+    def web_search_unavailable(query: str) -> str:
+        """Fallback tool when web search is not available."""
+        return "Web search is currently unavailable. Please try product search instead."
+    
+    # Check if API key exists
+    if not brave_api_key:
+        logger.warning("BRAVE_API_KEY not found. Web search will be unavailable.")
+        return [web_search_unavailable]
+    
+    try:
+        # Create MCP client with Brave Search server
+        client = MultiServerMCPClient({
+            "brave_search": {
+                "command": "npx",
+                "args": [
+                    "-y",
+                    "@brave/brave-search-mcp-server",
+                    "--transport",
+                    "stdio",
+                    "--brave-api-key",
+                    brave_api_key
+                ],
+                "transport": "stdio"
+            }
+        })
+        
+        # Get tools from the client (new API - no context manager needed)
+        tools = await client.get_tools()
+        
+        if not tools:
+            logger.warning("No tools returned from Brave Search MCP server")
+            return [web_search_unavailable]
+        
+        logger.info(f"Successfully loaded {len(tools)} tools from Brave Search MCP")
+        return tools
+        
+    except Exception as e:
+        logger.error(f"Error loading Brave Search MCP: {e}")
+        return [web_search_unavailable]
 
 def get_brave_web_search_tool_sync():
     """Safe sync wrapper for Streamlit."""
